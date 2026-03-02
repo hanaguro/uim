@@ -247,6 +247,7 @@ public:
     C16 getSize(C16 id);
     void set_locale_name(const char *locale);
     bool use_xft();
+    void set_use_xft(bool v) { m_use_xft = v; }
 
     unsigned long input_style;
     Window client_window;

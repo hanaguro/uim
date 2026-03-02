@@ -330,7 +330,7 @@ Convdisp *create_convdisp(int style, InputContext *k,
     case IS_ROOT_WINDOW:
 	return new ConvdispRw(k, a);
     case IS_OVER_THE_SPOT:
-	return new ConvdispOv(k, a);
+	return new ConvdispRw(k, a); // fallback: no bitmap fonts
     case IS_ON_THE_SPOT:
 	return new ConvdispOs(k, a, c);
     default:
@@ -407,6 +407,30 @@ PeWin::PeWin(Window pw, const char *im_lang, const char *encoding, const char *l
 #endif
     } else {
 	mFontset = choose_default_fontset(im_lang, locale);
+	if (!mFontset) {
+	    mConvdisp->force_use_xft();
+#if HAVE_XFT_UTF8_STRING
+	    if (!gXftFont)
+		init_default_xftfont();
+	    mXftFont = gXftFont;
+	    mXftDraw = XftDrawCreate(XimServer::gDpy, mPixmap,
+			    DefaultVisual(XimServer::gDpy, scr_num),
+			    DefaultColormap(XimServer::gDpy, scr_num));
+	    XColor dummyc, fg;
+	    XAllocNamedColor(XimServer::gDpy, DefaultColormap(XimServer::gDpy, scr_num), "black", &fg, &dummyc);
+	    mXftColorFg.color.red = dummyc.red;
+	    mXftColorFg.color.green = dummyc.green;
+	    mXftColorFg.color.blue = dummyc.blue;
+	    mXftColorFg.color.alpha = 0xffff;
+	    mXftColorFg.pixel = fg.pixel;
+	    XAllocNamedColor(XimServer::gDpy, DefaultColormap(XimServer::gDpy, scr_num), "white", &fg, &dummyc);
+	    mXftColorFgRev.color.red = dummyc.red;
+	    mXftColorFgRev.color.green = dummyc.green;
+	    mXftColorFgRev.color.blue = dummyc.blue;
+	    mXftColorFgRev.color.alpha = 0xffff;
+	    mXftColorFgRev.pixel = fg.pixel;
+#endif
+	}
     }
 
     mEncoding = encoding;

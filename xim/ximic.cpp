@@ -540,7 +540,14 @@ C16 XimIC::get_ic_atr(C16 id, TxPacket *t)
 int XimIC::lookup_style(unsigned long s)
 {
     int i;
-    struct input_style *is = get_im_by_id(mIMid)->getInputStyles();
+    XimIM *im = get_im_by_id(mIMid);
+    if (!im) {
+        return IS_INVALID;
+    }
+    struct input_style *is = im->getInputStyles();
+    if (!is) {
+        return IS_INVALID;
+    }
     for (i = 0; is[i].x_style; i++) {
 	if (is[i].x_style == (int)s)
 	    return is[i].style;
@@ -555,11 +562,14 @@ void XimIC::set_ic_attr(C16 id, C8 *val, int len)
     else
 	m_xatr.set_atr(id, val, mConn->byte_order());
 
+    if (id == ICA_InputStyle)
+
     if (mConvdisp)
 	mConvdisp->update_icxatr();
     else {
 	if (m_xatr.has_atr(ICA_InputStyle)) {
-	    mConvdisp = create_convdisp(lookup_style(m_xatr.input_style),
+	    int style = lookup_style(m_xatr.input_style);
+	    mConvdisp = create_convdisp(style,
 				    m_kkContext, &m_xatr, mConn);
 	    m_kkContext->setConvdisp(mConvdisp);
 

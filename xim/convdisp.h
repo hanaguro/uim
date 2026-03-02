@@ -58,6 +58,7 @@ public:
     virtual void set_locale_name(const char *locale);
     virtual const char *get_locale_name();
     virtual bool use_xft() = 0;
+    void force_use_xft() { m_atr->set_use_xft(true); }
 
 protected:
     // Owner of mKkContext is XimIC. This is set at the time of

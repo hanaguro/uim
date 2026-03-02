@@ -376,7 +376,7 @@ InputContext::createUimContext(const char *engine)
     client_locale = mXic->get_lang_region();
     engine_locales = compose_localenames_from_im_lang(get_im_lang_from_engine(engine));
 
-    if (!strcmp(encoding, "UTF-8")) {
+    if (!strcmp(encoding, "UTF-8") || !strcmp(encoding, "UTF8_STRING")) {
 	real_im = engine;
 	if (is_locale_included(engine_locales, client_locale))
 	    locale = strdup(client_locale);
@@ -463,7 +463,7 @@ InputContext::changeContext(const char *engine)
     im_lang = get_im_lang_from_engine(engine);
 
     // Don't change im unless encoding matches for clients with legacy locales.
-    if (strcmp(encoding, "UTF-8")) {
+    if (strcmp(encoding, "UTF-8") && strcmp(encoding, "UTF8_STRING")) {
 	const char *client_locale = mXic->get_lang_region();
 	const char *engine_locales = compose_localenames_from_im_lang(im_lang);
 
@@ -524,7 +524,7 @@ void InputContext::review_im(const char *engine)
     client_locale = mXic->get_lang_region();
     engine_locales = compose_localenames_from_im_lang(get_im_lang_from_engine(engine));
 
-    if (!strcmp(encoding, "UTF-8")) {
+    if (!strcmp(encoding, "UTF-8") || !strcmp(encoding, "UTF8_STRING")) {
 	if (is_locale_included(engine_locales, client_locale))
 	    locale = strdup(client_locale);
 	else
@@ -614,7 +614,6 @@ InputContext::commit_cb(void *ptr, const char *str)
 {
     InputContext *ic = (InputContext *)ptr;
     XimIC *xic = ic->get_ic();
-
     ic->clear_pe_stat();
     ic->update_preedit();
     xic->commit_string(str);
@@ -696,21 +695,18 @@ void InputContext::update_prop_label_cb(void *ptr, const char *str)
 void InputContext::configuration_changed_cb(void *ptr)
 {
     InputContext *ic = (InputContext *)ptr;
-
     ic->configuration_changed();
 }
 
 void InputContext::switch_app_global_im_cb(void *ptr, const char *name)
 {
     InputContext *ic = (InputContext *)ptr;
-
     ic->switch_app_global_im(name);
 }
 
 void InputContext::switch_system_global_im_cb(void *ptr, const char *name)
 {
     InputContext *ic = (InputContext *)ptr;
-
     ic->switch_system_global_im(name);
 }
 

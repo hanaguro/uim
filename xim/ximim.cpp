@@ -54,6 +54,9 @@ static std::map<C16, XimIM *> g_ims;
 
 // tables
 static input_style input_style_tab_with_over_the_spot[] = {
+    { XIMPreeditCallbacks | XIMStatusNothing, IS_ON_THE_SPOT },
+    {0x0002, IS_ROOT_WINDOW}, // wezterm sends this
+    {XIMPreeditNone|XIMStatusNone, IS_ROOT_WINDOW},
     {XIMPreeditNothing|XIMStatusNothing, IS_ROOT_WINDOW},
     //{XIMPreeditPosition|XIMStatusArea, IS_OVER_THE_SPOT},// emacs
     {XIMPreeditPosition|XIMStatusNothing, IS_OVER_THE_SPOT},
@@ -63,9 +66,12 @@ static input_style input_style_tab_with_over_the_spot[] = {
     {0, 0},
 };
 static input_style input_style_tab_without_over_the_spot[] = {
+    { XIMPreeditCallbacks | XIMStatusNothing, IS_ON_THE_SPOT },
+    {0x0002, IS_ROOT_WINDOW}, // wezterm sends this
+    {XIMPreeditNone|XIMStatusNone, IS_ROOT_WINDOW},
     {XIMPreeditNothing|XIMStatusNothing, IS_ROOT_WINDOW},
     //{XIMPreeditPosition|XIMStatusArea, IS_OVER_THE_SPOT},// emacs
-    //{XIMPreeditPosition|XIMStatusNothing, IS_OVER_THE_SPOT},
+    {XIMPreeditPosition|XIMStatusNothing, IS_OVER_THE_SPOT},
     //{XIMPreeditCallbacks|XIMStatusCallbacks, IS_ON_THE_SPOT},// OOo
     //{XIMPreeditArea|XIMStatusArea, IS_ROOT_WINDOW},
     {XIMPreeditCallbacks|XIMStatusNothing, IS_ON_THE_SPOT},
@@ -182,6 +188,9 @@ void XimIM_impl::set_ic_values(RxPacket *p)
 	v[i] = p->getC8();
     }
 
+    if (!ic) {
+        return;
+    }
     ic->setICAttrs((void *)v, atr_len);
 
     TxPacket *t = createTxPacket(XIM_SET_IC_VALUES_REPLY, 0);
@@ -422,7 +431,11 @@ void XimIM::FreeComposeTree(DefTree *top)
 void XimIM::set_encoding(const char *encoding)
 {
     free(mEncoding);
-    mEncoding = strdup(encoding);
+    // normalize encoding name
+    if (!strcasecmp(encoding, "UTF8_STRING") || !strcasecmp(encoding, "UTF-8"))
+        mEncoding = strdup("UTF-8");
+    else
+        mEncoding = strdup(encoding);
 
     // set iconv environment
     if (mLocale)
